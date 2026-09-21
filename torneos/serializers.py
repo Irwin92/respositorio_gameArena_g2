@@ -35,7 +35,9 @@ class InscripcionSerializer(serializers.ModelSerializer):
         model = Inscripcion
         fields = '__all__'
         read_only_fields = ['fecha_inscripcion']
-#El serializer debe verificar jugador activo, torneo abierto, duplicados y cupo disponible.
+        
+    #El serializer debe verificar jugador activo, torneo abierto, 
+    # duplicados y cupo disponible.
     def validate(self, data):
         torneo = data.get('torneo')
         jugador = data.get('jugador')
