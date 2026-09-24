@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework.authtoken.views import obtain_auth_token
-from torneos.views import estadisticas_admin_api
+from torneos.views import estadisticas_admin_api 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
