@@ -18,5 +18,27 @@ def videojuegos_api(request):
         serializer= VideoJuegoSerializer(videojuegos,many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return Response(
+        {'detail':'Se requiere un usuario administrador.'},
+        status=status.HTTP_403_FORBIDDEN
+        )
 
-# Create your views here.
+    serializer = VideoJuegoSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+@api_view(['GET','PUT','PATCH','DELETE'])
+def videojuego_detalle_api(request, id):
+    try:
+        videojuego= VideoJuego.objects.get(id=id) 
+    except VideoJuego.DoesNotExist:
+        return Response(
+            {'error':'Videojuego no enconcontrado.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    if 
