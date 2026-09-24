@@ -3,5 +3,5 @@ from .models import Jugador
 
 class JugadorSerializer(serializers.ModelSerializer):
     class Meta:
-         model = Jugador,
+         model = Jugador
          fields= '__all__'

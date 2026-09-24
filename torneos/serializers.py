@@ -3,7 +3,7 @@ from .models import Torneo,Inscripcion
 
 class TorneoSerializer(serializers.ModelSerializer):
     class Meta:
-         model = Torneo,
+         model = Torneo
          fields= '__all__'
 #--------------------------------------------------------------
     def validate_cupo_maximo(self,value):

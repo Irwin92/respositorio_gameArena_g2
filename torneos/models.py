@@ -9,7 +9,7 @@ class Torneo(models.Model):
         ('FINALIZADO','Finalizado'),
         ('CANCELADO','Cancelado'),
     ]
-    mombre = models.CharField(max_length=120)
+    nombre = models.CharField(max_length=120)
     videojuego = models.ForeignKey(
         VideoJuego,
         on_delete=models.PROTECT,

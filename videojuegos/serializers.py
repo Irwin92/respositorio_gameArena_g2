@@ -3,5 +3,5 @@ from .models import VideoJuego
 
 class VideoJuegoSerializer(serializers.ModelSerializer):
     class Meta:
-         model = VideoJuego,
+         model = VideoJuego
          fields= '__all__'
