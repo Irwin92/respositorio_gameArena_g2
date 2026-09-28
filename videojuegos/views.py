@@ -10,7 +10,7 @@ from .serializers import VideoJuegoSerializer
 def videojuegos_api(request):
     if request.method == 'GET':
         videojuegos = VideoJuego.objects.filter(activo=True).order_by('nombre')
-        plataforma = request.query_params_get('plataforma')
+        plataforma = request.query_params.get('plataforma')
 
         if plataforma:
             videojuegos =videojuegos.filter(plataforma__iexact=plataforma)
