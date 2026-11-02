@@ -97,8 +97,8 @@ export default function Videojuegos() {
         }
     }
     //--------------------------------funcion manejar cambios----------------------------------------------------------------
-    function manejarCambio(e){
-        const {name,value,type,checked}= e.target;
+    function manejarCambio(e) {
+        const { name, value, type, checked } = e.target;
         /**name indica que propiedad va a cambiar
          * value contiene el texto o valor seleccionado
          * checked se utiliza para el checkbox activo
@@ -110,32 +110,32 @@ export default function Videojuegos() {
         });
     }
     //--------------------------------funcion asincronica de crear video juegos----------------------------------------------------------------
-    async function crearVideojuego(){
-        if(!token){
-            throw new Error("Debe autenticarse antes de crear un videojuego") 
+    async function crearVideojuego() {
+        if (!token) {
+            throw new Error("Debe autenticarse antes de crear un videojuego")
         }
-        const respuesta= await fetch(API_URL,{
-            method:"POST",
+        const respuesta = await fetch(API_URL, {
+            method: "POST",
             headers: {
-                "Content-Type":"application/json",
+                "Content-Type": "application/json",
                 Authorization: `Token ${token}`,
             },
             body:
-            JSON.stringify(formulario),
+                JSON.stringify(formulario),
         });
-        if(!respuesta.ok){
+        if (!respuesta.ok) {
             throw new Error("No se pudo crear el videojuego");
         }
         const nuevo = await respuesta.json();
-        setVideojuegos((actuales) => [...actuales,nuevo]);
+        setVideojuegos((actuales) => [...actuales, nuevo]);
     }
     //--------------------------------funcion validar campos minimos----------------------------------------------------------------
-    function validarFormulario(){
-        if(!formulario.nombre.trim()){
+    function validarFormulario() {
+        if (!formulario.nombre.trim()) {
             setError("El nombre es obligatorio");
             return false;
         }
-        if(!formulario.plataforma){
+        if (!formulario.plataforma) {
             setError("Debe seleccionar una plataforma");
             return false;
         }
@@ -143,9 +143,114 @@ export default function Videojuegos() {
     }
 
     //----------------------------------funcion para iniciar edicion--------------------------------------------------------------
+    function iniciarEdicion(videojuego) {
+        setEditandoId(videojuego.id);
+        setFormulario({
+            nombre: videojuego.nombre ?? "",
+            genero: videojuego.genero ?? "",
+            plataforma: videojuego.plataforma ?? "PC",
+            clasificacion: videojuego.clasificacion ?? "",
+            fecha_lanzamiento: videojuego.fecha_lanzamiento ?? "",
+            activo: videojuego.activo ?? true,
+        });
+        setMensaje("");
+        setError("");
+    }
+    //----------------------------------funcion para actualizar--------------------------------------------------------------
+    async function actualizarVideojuego() {
+        const respuesta = await fetch(
+            `${API_URL}${editandoId}/`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            body: JSON.stringify(formulario),
+        });
+        if (!respuesta.ok) {
+            throw new Error("No se pudo actualizar el videojuego");
+        }
+        const actualizado = await respuesta.json();
+
+        setVideojuegos((actuales) =>
+            actuales.map((videojuego) =>
+                videojuego.id === actualizado.id
+                    ? actualizado
+                    : videojuego
+            )
+        );
+    }
+    //----------------------------------funcion para guardar un video juego (Creandolo o actualizandolo) --------------------------------------------------------------
+    async function guardarVideojuego(e) {
+        e.preventDefault();
+
+        if (!validarFormulario()) return;
+
+        try {
+            setProcesando(true);
+            setError("");
+            setMensaje("");
+            if (editandoId === null) {
+                await crearVideojuego();
+                setMensaje("Videojuego creado correctamente")
+            } else {
+                await actualizarVideojuego();
+                setMensaje("Videojuego actualizado correctamente")
+            }
+            setFormulario(formularioInicial);
+            setEditandoId(null);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setProcesando(false);
+        }
+    }
+
+    //----------------------------------funcion para Cancelar edicion --------------------------------------------------------------
+    function cancelarEdicion() {
+        setEditandoId(null);
+        setFormulario(formulario);
+        setError("");
+        setMensaje("");
+    }
+    //----------------------------------funcion asyn para eliminar con delete --------------------------------------------------------------
+    async function eliminarVideojuego(id) {
+        const confirmar = window.confirm("¿Desea eliminar este videojuego?");
+        if (!confirmar) return;
+        try {
+            setError("");
+            setMensaje("");
+
+            const respuesta = await fetch(
+                `${API_URL}${id}/`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Token ${token}`,
+                },
+            });
+            if (!respuesta.ok) {
+                throw new Error("No se pudo eliminar el videojuego");
+            }
+            const actualizado = await respuesta.json();
+
+            setVideojuegos((actuales) =>
+                actuales.filter((videojuego) => videojuego.id !== id)
+            );
+
+            if (editandoId === id) {
+                cancelarEdicion();
+            }
+            setMensaje("Videojuego eliminado correctamente");
+        } catch (err) {
+            setError(err.message);
+        }
+
+    }
+
     /**------------------------------------------------------------------------------------ */
     return (
         <section className="container py-4">
+            <h1 className="mb-4">GameArena</h1>
             {!token ? (
                 <form onSubmit={iniciarSesion} className="card card-body mb-4">
                     <h2 className="h4 mb-3">Autenticación</h2>
@@ -175,8 +280,87 @@ export default function Videojuegos() {
                 <div className="alert alert-info">
                     Usuario autenticado.El token se enviará en POST, PATH y DELETE.
                 </div>
-            )
-            }
+            )}
+            {mensaje && <div className="alert alert-success">{mensaje}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            <form onSubmit={guardarVideojuego} className="card card-body mb-4">
+                <h2 className="h4 mb-3">{editandoId ? "Editar videojuego" : "Nuevo videojuego"}</h2>
+                <div className="mb-3">
+                    <label className="form-label">Nombre</label>
+                    <input className="form-control"
+                        name="nombre"
+                        value={formulario.nombre}
+                        onChange={manejarCambio} />
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Género</label>
+                    <input className="form-control"
+                        name="genero"
+                        value={formulario.genero}
+                        onChange={manejarCambio} />
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Plataforma</label>
+                    <select className="form-select"
+                        name="plataforma"
+                        value={formulario.plataforma}
+                        onChange={manejarCambio}>
+                        <option value="PC">PC</option>
+                        <option value="PlayStation">PlayStation</option>
+                        <option value="Nintendo">Nintendo</option>
+                        <option value="Xbox">Xbox</option>
+                    </select>
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Clasificacion</label>
+                    <input className="form-control"
+                        name="clasificacion"
+                        value={formulario.clasificacion}
+                        onChange={manejarCambio} />
+                </div>
+                <div className="mb-3">
+                    <label className="form-label">Fecha de Lanzamiento</label>
+                    <input type="date"
+                        className="form-control"
+                        name="fecha_lanzamiento"
+                        value={formulario.fecha_lanzamiento}
+                        onChange={manejarCambio}
+                         />
+                </div>
+                <div className="form-check mb-3">
+                    <input type="checkbox"
+                        className="form-check-input"
+                        name="activo"
+                        value={formulario.activo}
+                        onChange={manejarCambio} />
+                    <label className="form-label">Activo</label>
+                </div>
+                <div className="d-flex gap-2">
+                    <button className="btn btn-primary" disabled={procesando}>
+                        {procesando
+                            ? "procesando..."
+                            : editandoId
+                                ? "Actualizar"
+                                : "Guardar"}
+                    </button>
+                    {editandoId && (
+                        <button className="btn btn-secondary" type="button" onClick={cancelarEdicion}>
+                            Cancelar
+                        </button>
+                    )}
+                </div>
+            </form>
+            <div className="row g-3">
+                {videojuegos.map((videojuego) => (
+                    <VideojuegoCard
+                    key={videojuego.id}
+                    videojuego={videojuego}
+                    onEditar={iniciarEdicion}
+                    onEliminar={eliminarVideojuego}
+                    />
+                ))}
+            </div>
         </section>
     )
 }
