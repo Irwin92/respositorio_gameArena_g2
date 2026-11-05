@@ -24,7 +24,7 @@ export default function VideojuegoCard({
                             Editar
                         </button>
                         <button className="btn btn-danger btn-sm"
-                            onClick={() => onEliminar(videojuego)}>
+                            onClick={() => onEliminar(videojuego.id)}>
                             Eliminar
                         </button>
                     </div>

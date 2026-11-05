@@ -231,7 +231,6 @@ export default function Videojuegos() {
             if (!respuesta.ok) {
                 throw new Error("No se pudo eliminar el videojuego");
             }
-            const actualizado = await respuesta.json();
 
             setVideojuegos((actuales) =>
                 actuales.filter((videojuego) => videojuego.id !== id)
